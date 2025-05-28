@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &4946964549556497868
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6569107872337641750}
+  - component: {fileID: 6377823720475766704}
+  - component: {fileID: 8782728759530068893}
+  - component: {fileID: 5948165680781290978}
+  m_Layer: 0
+  m_Name: OnDevicePersistence
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6569107872337641750
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4946964549556497868}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6377823720475766704
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4946964549556497868}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6c1c602833d64e1fa2583963cc69324, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _deviceMappingManager: {fileID: 0}
+  _saveToFile: 1
+--- !u!114 &8782728759530068893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4946964549556497868}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 660e0bec4b99f4ece8fe619156c385eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _persistentAnchorManager: {fileID: 0}
+  _deviceMappingManager: {fileID: 0}
+  _loadFromFile: 1
+--- !u!114 &5948165680781290978
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4946964549556497868}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 46af25aaf734e456f9700906d347480b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _mapper: {fileID: 6377823720475766704}
+  _tracker: {fileID: 8782728759530068893}
+  _statusText: {fileID: 0}
+  _createLoadPanel: {fileID: 0}
+  _createMapButton: {fileID: 0}
+  _loadMapButton: {fileID: 0}
+  _scanMapPanel: {fileID: 0}
+  _startScanning: {fileID: 0}
+  _exitScanMapButton: {fileID: 0}
+  _scanningAnimationPanel: {fileID: 0}
+  _inGamePanel: {fileID: 0}
+  _placeCubeButton: {fileID: 0}
+  _deleteCubesButton: {fileID: 0}
+  _exitInGameButton: {fileID: 0}
