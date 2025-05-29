@@ -1,0 +1,4 @@
+repository "RoomDetection 2025-05-28_17-46-06/RoomDetection@18968270463874@cloud"
+  path "/"
+    br "/main"
+    co "/main"

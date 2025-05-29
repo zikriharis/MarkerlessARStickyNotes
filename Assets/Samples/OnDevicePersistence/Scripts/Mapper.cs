@@ -1,7 +1,9 @@
 // Copyright 2022-2025 Niantic.
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Niantic.Lightship.AR.Mapping;
 using Niantic.Lightship.AR.MapStorageAccess;
 using UnityEngine;
@@ -64,8 +66,9 @@ public class Mapper : MonoBehaviour
         _deviceMappingManager.StartMapping();
         
         //end mapping after a few seconds
-        yield return new WaitForSeconds(seconds);
-        _deviceMappingManager.StopMapping();
+        //remove time so that the users can stop when they want
+        //yield return new WaitForSeconds(seconds);
+        //_deviceMappingManager.StopMapping();
         _mappingInProgress = false;
     }
 
@@ -74,6 +77,7 @@ public class Mapper : MonoBehaviour
     {
         if (_mappingInProgress)
         {
+            //system may take a moment to finalize the map, coroutine keeps monitoring until the map is fully finalized
             StopCoroutine(currentCo);
             _deviceMappingManager.DeviceMapFinalized -= OnDeviceMapFinalized;
             _deviceMappingManager.StopMapping();
@@ -101,8 +105,13 @@ public class Mapper : MonoBehaviour
             success = true;
             if (_saveToFile == true)
             {
+                //Merge all subgraphs before saving
+                if (_deviceMappingManager.DeviceMapAccessController.MergeSubGraphs(map.DeviceMapNodes.Select(n => new MapSubGraph(n._mapData)).ToArray(), true, out var mergedGraph))
+                {
+                    map.SetDeviceMapGraph(mergedGraph.GetData());
+                }
                 // map update. save as a new map to the file system
-                var fileName = OnDevicePersistence.k_mapFileName;
+                var fileName = CloudPersistence.k_mapFileName;
                 var serializedDeviceMap = map.Serialize();
                 var path = Path.Combine(Application.persistentDataPath, fileName);
                 File.WriteAllBytes(path, serializedDeviceMap);
@@ -111,4 +120,15 @@ public class Mapper : MonoBehaviour
         }
         _onMappingComplete?.Invoke(success);
     }
+
+    // Add a method to manually stop mapping
+    public void StopHouseMapping()
+    {
+        if (_mappingInProgress)
+        {
+            _deviceMappingManager.StopMapping();
+            _mappingInProgress = false;
+        }
+    }
+
 }
