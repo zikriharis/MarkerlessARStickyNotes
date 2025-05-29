@@ -98,7 +98,7 @@ public class Tracker : MonoBehaviour
         if (_loadFromFile)
         {
             // Read a new device map from file
-            var fileName =  OnDevicePersistence.k_mapFileName;
+            var fileName =  CloudPersistence.k_mapFileName;
             var path = Path.Combine(Application.persistentDataPath, fileName);
             var serializedDeviceMap = File.ReadAllBytes(path);
             _deviceMap = ARDeviceMap.CreateFromSerializedData(serializedDeviceMap);

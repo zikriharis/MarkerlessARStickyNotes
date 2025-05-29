@@ -35,11 +35,11 @@ public class Mapper : MonoBehaviour
 
     private Coroutine currentCo;
     private bool _mappingInProgress = false;
-    public void RunMappingFor(float seconds)
-    {
-        _deviceMappingManager.DeviceMapFinalized += OnDeviceMapFinalized;
-        currentCo = StartCoroutine(RunMapping(seconds));
-    }
+    //public void RunMappingFor(float seconds)
+   // {
+   //     _deviceMappingManager.DeviceMapFinalized += OnDeviceMapFinalized;
+   //     currentCo = StartCoroutine(RunMapping(seconds));
+   // }
 
     public ARDeviceMap GetMap()
     {
@@ -53,23 +53,39 @@ public class Mapper : MonoBehaviour
     
     //scanning is just on a timer to make some of the UX eaiser
     //you can easily modify the code have a start and stop button if you prefer
-    private IEnumerator RunMapping(float seconds)
+    public void RunMapping()
     {
+        _deviceMappingManager.DeviceMapFinalized -= OnDeviceMapFinalized;
+
+        StartCoroutine(ResetAndStartMapping());
         // Reset the ARDeviceMappingManager
-        _deviceMappingManager.enabled = false;
-        yield return null;
-        _deviceMappingManager.enabled = true;
-        yield return null;
+        //.enabled = false;
+        //yield return null;
+        //_deviceMappingManager.enabled = true;
+        //yield return null;
         //start mapping
-        _mappingInProgress = true;
-        _deviceMappingManager.SetDeviceMap(new ARDeviceMap());
-        _deviceMappingManager.StartMapping();
+        //_mappingInProgress = true;
+        //_deviceMappingManager.SetDeviceMap(new ARDeviceMap());
+        //_deviceMappingManager.StartMapping();
         
         //end mapping after a few seconds
         //remove time so that the users can stop when they want
         //yield return new WaitForSeconds(seconds);
         //_deviceMappingManager.StopMapping();
-        _mappingInProgress = false;
+        //_mappingInProgress = false;
+    }
+
+    private IEnumerator ResetAndStartMapping()
+    {
+        _deviceMappingManager.enabled = false;
+        yield return null;
+        _deviceMappingManager.enabled = true;
+        yield return null;
+
+        // Start mapping without timer
+        _mappingInProgress = true;
+        _deviceMappingManager.SetDeviceMap(new ARDeviceMap());
+        _deviceMappingManager.StartMapping();
     }
 
     //called if you hit exit while scanning is happening.
@@ -77,8 +93,13 @@ public class Mapper : MonoBehaviour
     {
         if (_mappingInProgress)
         {
-            //system may take a moment to finalize the map, coroutine keeps monitoring until the map is fully finalized
-            StopCoroutine(currentCo);
+            // System may take a moment to finalize map
+            if (currentCo != null)
+            {
+                //system may take a moment to finalize the map, coroutine keeps monitoring until the map is fully finalized
+                StopCoroutine(currentCo);
+            }
+            
             _deviceMappingManager.DeviceMapFinalized -= OnDeviceMapFinalized;
             _deviceMappingManager.StopMapping();
             _mappingInProgress = false;
@@ -120,15 +141,4 @@ public class Mapper : MonoBehaviour
         }
         _onMappingComplete?.Invoke(success);
     }
-
-    // Add a method to manually stop mapping
-    public void StopHouseMapping()
-    {
-        if (_mappingInProgress)
-        {
-            _deviceMappingManager.StopMapping();
-            _mappingInProgress = false;
-        }
-    }
-
 }

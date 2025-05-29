@@ -248,7 +248,7 @@ public class CloudPersistence : MonoBehaviour
         _scanMapPanel.SetActive(true);
         _startScanning.onClick.AddListener(StartScanning);
         _exitScanMapButton.onClick.AddListener(Exit);
-        _stopScanningButton.onClick.AddListener(StopHouseMapping);
+        _stopScanningButton.onClick.AddListener(StopScanning);
         _stopScanningButton.gameObject.SetActive(true);
 
         _startScanning.interactable = true;
@@ -268,11 +268,11 @@ public class CloudPersistence : MonoBehaviour
     private void StartScanning()
     {
         _startScanning.interactable = false;
-        _statusText.text = "Look Around to create map";
+        _stopScanningButton.interactable = true;
+        _statusText.text = "Look Around to create map - Tap STOP when done";
         _mapper._onMappingComplete += MappingComplete;
-        float time = 5.0f;
-        _mapper.RunMappingFor(time);
-
+        _mapper.RunMapping();
+        
         _scanningAnimationPanel.SetActive(true);
     }
 
@@ -466,11 +466,11 @@ public class CloudPersistence : MonoBehaviour
         // For now: fake it using timestamp
         return "room_" + DateTime.Now.Ticks.ToString();
     }
-
-    private void StopHouseMapping()
+    // Add stop scanning button handler
+    private void StopScanning()
     {
-        _mapper.StopHouseMapping();
-        _statusText.text = "Finished mapping entire house";
-        // You might want to automatically proceed to localization here
+        _mapper.StopMapping();
+        _stopScanningButton.interactable = false;
+        _statusText.text = "Finalizing map...";
     }
 }
