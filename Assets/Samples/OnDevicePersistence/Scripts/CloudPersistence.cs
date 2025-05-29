@@ -7,6 +7,8 @@ using UnityEngine.UI;
 using System.IO;
 using System;
 using Unity.VisualScripting;
+using Niantic.Lightship.AR.Mapping;
+using Unity.VisualScripting.Dependencies.Sqlite;
 
 /// <summary>
 /// CloudPersistence
@@ -26,20 +28,19 @@ public class CloudPersistence : MonoBehaviour
     [SerializeField]
     private Text _statusText;
 
-    //[Header("UX - Room Name Input")]
-    //[SerializeField]
-    //private InputField _roomNameInputField;
-
-    [Header("UX - Create/Load")]
+    [Header("UX - Room Name Input")]
     [SerializeField]
-    private GameObject _createLoadPanel;
-    private Button _stopScanningButton;
+    private InputField _roomNameInputField;
 
+    [Header("UX - Create/Update")]
+    [SerializeField]
+    private GameObject _createUpdatePanel;
+   
     [SerializeField]
     private Button _createMapButton;
 
     [SerializeField]
-    private Button _loadMapButton;
+    private Button _updateMapButton;
 
     [Header("UX - Scan Map")]
     [SerializeField]
@@ -49,7 +50,7 @@ public class CloudPersistence : MonoBehaviour
     private Button _startScanning;
 
     [SerializeField]
-    private Button _exitScanMapButton;
+    private Button _stopScanMapButton;
 
     [Header("UX - Scanning Animation")]
     [SerializeField]
@@ -86,6 +87,10 @@ public class CloudPersistence : MonoBehaviour
     public static string k_mapFileName = "ADHocMapFile";
     public static string k_objectsFileName = "ADHocObjectsFile";
 
+    //for checking if existing map is available
+    private string _currentMapPath;
+    public string CurrentMapPath => _currentMapPath;
+
     /// <summary>
     /// Set up to main menu on start
     /// </summary>
@@ -97,15 +102,9 @@ public class CloudPersistence : MonoBehaviour
         _mapper._saveToFile = true;
 
         //Load the previous map if possible
-        if (PlayerPrefs.HasKey("LastMapSignature"))
-        {
-            GlobalMapName = PlayerPrefs.GetString("LastMapSignature");
-        }
-        else
-        {
-            // Initialize UI by hiding and disabling unrelated UI panel
-            SetUp_CreateMenu();
-        }
+        // Initialize UI by hiding and disabling unrelated UI panel
+        SetUp_CreateMenu();
+        
     }
 
     //private void Update()
@@ -169,7 +168,7 @@ public class CloudPersistence : MonoBehaviour
         yield return null;
     }
 
-    //create and load map functions
+    //create and update map functions
     private bool CheckForSavedMap(string MapFileName)
     {
         if (string.IsNullOrEmpty(GlobalMapName) || string.IsNullOrEmpty(MapFileName))
@@ -189,77 +188,68 @@ public class CloudPersistence : MonoBehaviour
         Teardown_ScanningMenu();
         Teardown_LocalizeMenu();
 
-        _createLoadPanel.SetActive(true);
+        _createUpdatePanel.SetActive(true);
 
-        _createMapButton.onClick.AddListener(SetUp_ScanMenu);
-        _loadMapButton.onClick.AddListener(SetUp_LocalizeMenu);
-
-        _createMapButton.interactable = true;
-
-        //_roomNameInputField.gameObject.SetActive(true);
-
-        //if there is a saved map enable the load button.
-        if (CheckForSavedMap(k_mapFileName))
+        if (PlayerPrefs.HasKey("CurrentMapPath"))
         {
-            _loadMapButton.interactable = true;
+            _createMapButton.onClick.RemoveAllListeners();
+            _updateMapButton.onClick.AddListener(SetUp_ScanMenu);
+            _createMapButton.interactable = false;
+            _updateMapButton.interactable = true;
+            _roomNameInputField.gameObject.SetActive(false);
+            SetUp_LocalizeMenu();
         }
         else
         {
-            _loadMapButton.interactable = false;
+            _createMapButton.onClick.AddListener(SetUp_ScanMenu);
+            _updateMapButton.onClick.RemoveAllListeners();
+            _createMapButton.interactable=true;
+            _updateMapButton.interactable = false;
+            _roomNameInputField.gameObject.SetActive(true);
         }
-
     }
 
     private void Teardown_CreateMenu()
     {
-        //_roomNameInputField.gameObject.SetActive(false);
+        _roomNameInputField.gameObject.SetActive(false);
 
-        _createLoadPanel.gameObject.SetActive(false);
+        _createUpdatePanel.gameObject.SetActive(false);
         _createMapButton.onClick.RemoveAllListeners();
-        _loadMapButton.onClick.RemoveAllListeners();
+        _updateMapButton.onClick.RemoveAllListeners();
     }
 
-    bool ValidateRoomName(string roomName)
-    {
-        if ((roomName.Length == 0) || (!Regex.IsMatch(roomName, "^[a-zA-Z0-9]*$")))
-        {
-            return false;
-        }
-
-        return true;
-    }
+    //bool ValidateRoomName(string roomName)
+    //{
+    //    if ((roomName.Length == 0) || (!Regex.IsMatch(roomName, "^[a-zA-Z0-9]*$")))
+    //    {
+    //        return false;
+    //    }
+    //
+    //    return true;
+    //}
 
     /// <summary>
     /// Scan Map functions
     /// </summary>
     private void SetUp_ScanMenu()
     {
-        //if (!ValidateRoomName(_roomNameInputField.text))
-        //{
-        //    _statusText.text = "Invalid name";
-        //    return;
-        //}
-
-        //_mapSignature = _roomNameInputField.text;
-
-        _statusText.text = "";
+        _statusText.text = "Press Scan to Start Map Scanning";
 
         Teardown_CreateMenu();
         _scanMapPanel.SetActive(true);
         _startScanning.onClick.AddListener(StartScanning);
-        _exitScanMapButton.onClick.AddListener(Exit);
-        _stopScanningButton.onClick.AddListener(StopScanning);
-        _stopScanningButton.gameObject.SetActive(true);
+        _stopScanMapButton.onClick.AddListener(StopScanning);
+        _stopScanMapButton.gameObject.SetActive(true);
 
         _startScanning.interactable = true;
-        _exitScanMapButton.interactable = true;
+        _stopScanMapButton.interactable = true;
     }
 
     private void Teardown_ScanningMenu()
     {
         //disable and hide unrelated UI
         _startScanning.onClick.RemoveAllListeners();
-        _exitScanMapButton.onClick.RemoveAllListeners();
+        _stopScanMapButton.onClick.RemoveAllListeners();
         _scanMapPanel.gameObject.SetActive(false);
         _mapper._onMappingComplete -= MappingComplete;
         _mapper.StopMapping();
@@ -268,7 +258,8 @@ public class CloudPersistence : MonoBehaviour
     private void StartScanning()
     {
         _startScanning.interactable = false;
-        _stopScanningButton.interactable = true;
+        _stopScanMapButton.interactable = true;
+        _stopScanMapButton.onClick.AddListener(StopScanning);
         _statusText.text = "Look Around to create map - Tap STOP when done";
         _mapper._onMappingComplete += MappingComplete;
         _mapper.RunMapping();
@@ -281,8 +272,6 @@ public class CloudPersistence : MonoBehaviour
     {
         if (success)
         {
-            //clear out any cubers
-            DeleteCubes();
             _scanningAnimationPanel.SetActive(false);
 
             //jump to localizing.
@@ -295,9 +284,9 @@ public class CloudPersistence : MonoBehaviour
             _statusText.text = "Map Creation Failed Try Again";
         }
 
-        GlobalMapName = GenerateMapSignature();
-        PlayerPrefs.SetString("LastMapSignature", GlobalMapName);
-        PlayerPrefs.Save();
+        //GlobalMapName = GenerateMapSignature();
+        //PlayerPrefs.SetString("LastMapSignature", GlobalMapName);
+        //PlayerPrefs.Save();
 
         //Removes this method from the onMappingComplete listener list to prevent being triggered in future and avoid double calls
         _mapper._onMappingComplete -= MappingComplete;
@@ -308,20 +297,11 @@ public class CloudPersistence : MonoBehaviour
     /// </summary>
     private void SetUp_LocalizeMenu()
     {
-        //if (!ValidateRoomName(_roomNameInputField.text))
-        //{
-        //    _statusText.text = "Invalid name";
-        //    return;
-        //}
-
-        //_mapSignature = _roomNameInputField.text;
-
         Teardown_CreateMenu();
         Teardown_ScanningMenu();
-
-        //check if this is needed
-        //_localizationPanel.SetActive(true);
-        //_exitLocalizeButton.onClick.AddListener(Exit);
+               
+        _localizationPanel.SetActive(true);
+        _exitLocalizeButton.onClick.AddListener(Exit);
 
         //go to tracking and localise to the map.
         _statusText.text = "Move Phone around to localize to map";
@@ -335,11 +315,9 @@ public class CloudPersistence : MonoBehaviour
     {
         _tracker._tracking -= Localized;
         _scanningAnimationPanel.SetActive(false);
-
-
-        //recheck if this is needed
-        //_localizationPanel.SetActive(false);
-        //_exitLocalizeButton.onClick.RemoveAllListeners();
+                       
+        _localizationPanel.SetActive(false);
+        _exitLocalizeButton.onClick.RemoveAllListeners();
     }
 
     private void Localized(bool localized)
@@ -470,7 +448,7 @@ public class CloudPersistence : MonoBehaviour
     private void StopScanning()
     {
         _mapper.StopMapping();
-        _stopScanningButton.interactable = false;
+        _stopScanMapButton.interactable = false;
         _statusText.text = "Finalizing map...";
     }
 }
